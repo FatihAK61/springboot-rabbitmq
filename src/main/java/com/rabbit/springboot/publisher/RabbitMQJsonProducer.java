@@ -9,20 +9,20 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitMQProducer {
+public class RabbitMQJsonProducer {
 
     @Value("${rabbitmq.exchange.name}")
     private String exchange;
 
-    @Value("${rabbitmq.routing-key.name}")
-    private String routing_key;
+    @Value("${rabbitmq.routing-key.json.name}")
+    private String json_routing_key;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RabbitMQProducer.class);
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void sendMessage(String message) {
+    public void sendJsonMessage(final Object message) {
         LOGGER.info(String.format("Sending message: %s", message));
-        rabbitTemplate.convertAndSend(exchange, routing_key, message);
+        rabbitTemplate.convertAndSend(exchange, json_routing_key, message);
     }
 }
