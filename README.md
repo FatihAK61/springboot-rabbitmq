@@ -48,6 +48,7 @@ cd springboot-rabbitmq
 ### 2. Start RabbitMQ Server
 
 #### Option A: Using Docker
+
 ```bash
 docker run -d --name rabbitmq \
   -p 5672:5672 \
@@ -58,6 +59,7 @@ docker run -d --name rabbitmq \
 ```
 
 #### Option B: Local Installation
+
 - Download and install RabbitMQ from [official website](https://www.rabbitmq.com/download.html)
 - Start the RabbitMQ server
 - Enable management plugin: `rabbitmq-plugins enable rabbitmq_management`
@@ -78,64 +80,36 @@ The application will start on `http://localhost:8080`
 
 ## ⚙️ Configuration
 
-### Application Properties
+### For Docker Container
 
-Create `src/main/resources/application.yml`:
+From terminal: docker pull rabbitmq:4.1.3-management
 
-```yaml
-spring:
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: admin
-    password: admin123
-    virtual-host: /
-    connection-timeout: 30000
-    
-  application:
-    name: springboot-rabbitmq
-
-server:
-  port: 8080
-
-logging:
-  level:
-    com.rabbit: DEBUG
-    org.springframework.amqp: INFO
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
-```
+Container Run: docker run --rm -it -p 15672:15672 -p 5672:5672 rabbitmq:4.1.3-management
 
 ### Queue Configuration
 
 Example configuration class:
 
 ```java
+
 @Configuration
 @EnableRabbitMQ
 public class RabbitConfig {
-    
+
     public static final String QUEUE_NAME = "sample.queue";
     public static final String EXCHANGE_NAME = "sample.exchange";
     public static final String ROUTING_KEY = "sample.routing.key";
-    
+
     @Bean
     public Queue queue() {
         return QueueBuilder.durable(QUEUE_NAME).build();
     }
-    
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(EXCHANGE_NAME);
     }
-    
+
     @Bean
     public Binding binding() {
         return BindingBuilder.bind(queue())
@@ -150,18 +124,19 @@ public class RabbitConfig {
 ### Sending Messages
 
 ```java
+
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
-    
+
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    
+
     @PostMapping("/send")
     public ResponseEntity<String> sendMessage(@RequestBody String message) {
-        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, 
-                                    RabbitConfig.ROUTING_KEY, 
-                                    message);
+        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME,
+                RabbitConfig.ROUTING_KEY,
+                message);
         return ResponseEntity.ok("Message sent successfully");
     }
 }
@@ -170,9 +145,10 @@ public class MessageController {
 ### Consuming Messages
 
 ```java
+
 @Component
 public class MessageConsumer {
-    
+
     @RabbitListener(queues = RabbitConfig.QUEUE_NAME)
     public void receiveMessage(String message) {
         log.info("Received message: {}", message);
@@ -211,23 +187,25 @@ src/
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/messages/send` | Send a message to queue |
-| GET | `/api/messages/status` | Get queue status |
-| GET | `/actuator/health` | Health check |
-| GET | `/actuator/metrics` | Application metrics |
+| Method | Endpoint            | Description             |
+|--------|---------------------|-------------------------|
+| POST   | `/api/v1/publish`   | Send a message to queue |
+| GET    | `/api/v1/publish`   | Get queue status        |
+| GET    | `/actuator/health`  | Health check            |
+| GET    | `/actuator/metrics` | Application metrics     |
 
 ### Example API Calls
 
 #### Send a Message
+
 ```bash
-curl -X POST http://localhost:8080/api/messages/send \
+curl -X POST http://localhost:8080/api/v1/publish \
   -H "Content-Type: application/json" \
   -d "Hello RabbitMQ!"
 ```
 
 #### Check Health
+
 ```bash
 curl http://localhost:8080/actuator/health
 ```
@@ -237,46 +215,57 @@ curl http://localhost:8080/actuator/health
 This project demonstrates several messaging patterns:
 
 ### 1. Work Queue Pattern
+
 - Single producer, multiple consumers
 - Load balancing between consumers
 
 ### 2. Publish/Subscribe Pattern
+
 - Messages broadcast to multiple consumers
 - Uses fanout exchange
 
 ### 3. Routing Pattern
+
 - Selective message routing based on routing keys
 - Uses direct exchange
 
 ### 4. Topic Pattern
+
 - Pattern-based message routing
 - Uses topic exchange
 
 ## 📊 Monitoring
 
 ### RabbitMQ Management UI
+
 Access the management interface at `http://localhost:15672`
-- Username: `admin`
-- Password: `admin123`
+
+- Username: `guest`
+- Password: `guest`
 
 ### Spring Boot Actuator
+
 Monitor application health and metrics:
+
 - Health: `http://localhost:8080/actuator/health`
 - Metrics: `http://localhost:8080/actuator/metrics`
 
 ## 🧪 Testing
 
 ### Run Unit Tests
+
 ```bash
 ./mvnw test
 ```
 
 ### Run Integration Tests
+
 ```bash
 ./mvnw verify
 ```
 
 ### Manual Testing
+
 1. Start the application
 2. Send messages via REST API
 3. Check RabbitMQ management UI for queue status
@@ -319,6 +308,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 ### Getting Help
 
 If you encounter any issues:
+
 1. Check the application logs
 2. Verify RabbitMQ server status
 3. Review the configuration settings
