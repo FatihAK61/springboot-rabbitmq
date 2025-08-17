@@ -55,7 +55,7 @@ docker run -d --name rabbitmq \
   -p 15672:15672 \
   -e RABBITMQ_DEFAULT_USER=guest \
   -e RABBITMQ_DEFAULT_PASS=guest \
-  rabbitmq:3-management
+  rabbitmq:4.1.3-management
 ```
 
 #### Option B: Local Installation
